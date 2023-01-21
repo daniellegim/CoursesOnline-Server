@@ -19,8 +19,10 @@ database.once('connected', () => {
 app.use(express.json())
 
 const coursesRouter = require('./routes/courses')
+const usercoursesRouter = require('./routes/userCourses')
 
 app.use('/courses', coursesRouter)
+app.use('/usercourses', usercoursesRouter)
 
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
