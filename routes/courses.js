@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
     })
     try {
         const newCourse = await course.save()
-        res.status(201).json(newCourse)
+        res.status(200).json(newCourse)
     } catch (err) {
         res.status(400).json({ message: err.message })
     }
