@@ -1,4 +1,5 @@
 const express = require('express')
+const mongoose = require('mongoose');
 const router = express.Router()
 const Courses = require('../models/course')
 
@@ -6,6 +7,29 @@ const Courses = require('../models/course')
 router.get('/', async (req, res) => {
     try {
         const courses = await Courses.find()
+        res.json(courses)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+})
+
+// Get filtered courses
+router.get('/filtered', async (req, res) => {
+    const whereClause = {}
+
+    if (req.query.categories) {
+        const categories = req.query.categories.map(cat => mongoose.Types.ObjectId(cat))
+        whereClause.category = { $in: categories }
+    }
+
+    if (req.query.price)
+        whereClause.price = { $gte: req.query.price.min, $lte: req.query.price.max }
+
+    if (req.query.rating)
+        whereClause.rating = req.query.rating
+
+    try {
+        const courses = await Courses.find(whereClause)
         res.json(courses)
     } catch (err) {
         res.status(500).json({ message: err.message })
