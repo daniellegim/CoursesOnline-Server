@@ -14,10 +14,7 @@ const UserCourses = require('../models/userCourse')
 
 // Create new course for user
 router.post('/', async (req, res) => {
-    const courses = req.body.courses.map(course => new UserCourses({
-        userId: course.userId,
-        courseId: course.courseId,
-    }))
+    const courses = req.body.courses.map(course => new UserCourses(course))
 
     try {
         const newCourses = await UserCourses.insertMany(courses)
