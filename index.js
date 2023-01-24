@@ -20,9 +20,11 @@ app.use(express.json())
 
 const coursesRouter = require('./routes/courses')
 const usercoursesRouter = require('./routes/userCourses')
+const categoriesRouter = require('./routes/categories')
 
 app.use('/courses', coursesRouter)
 app.use('/usercourses', usercoursesRouter)
+app.use('/categories', categoriesRouter)
 
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)

@@ -2,17 +2,30 @@ const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
     name: {
-        required: true,
-        type: String
+        type: String,
+        required: true
     },
     description: {
-        required: true,
-        type: String
+        type: String,
+        required: true
     },
     price: {
-        required: true,
-        type: Number
-    }
+        type: Number,
+        required: true
+    },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: true
+    },
+    rating: {
+        type: Number,
+        required: true
+    },
+    author: {
+        type: String,
+        required: true
+    } 
 }, { collection: "courses" })
 
 module.exports = mongoose.model('Course', courseSchema)
