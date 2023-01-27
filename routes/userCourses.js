@@ -3,14 +3,14 @@ const router = express.Router()
 const UserCourses = require('../models/userCourse')
 
 // Get all courses for user
-// router.get('/', async (req, res) => {
-//     try {
-//         const courses = await Courses.find()
-//         res.json(courses)
-//     } catch (err) {
-//         res.status(500).json({ message: err.message })
-//     }
-// })
+router.get('/:id', async (req, res) => {
+    try {
+        const courses = await UserCourses.find({ userId: req.params.id }).populate("courseId")
+        res.json(courses)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+})
 
 // Create new course for user
 router.post('/', async (req, res) => {
