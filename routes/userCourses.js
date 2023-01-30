@@ -12,6 +12,42 @@ router.get('/:id', async (req, res) => {
     }
 })
 
+// Get category bar chart data
+router.get('/', async (req, res) => {
+    try {
+        const categories = await UserCourses.aggregate(
+            [
+                {
+                    "$lookup": {
+                        "from": "courses",
+                        "localField": "courseId",
+                        "foreignField": "_id",
+                        "as": "course"
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$course.category",
+                        count: { $count: {} }
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "categories",
+                        "localField": "_id",
+                        "foreignField": "_id",
+                        "as": "category"
+                    }
+                },
+            ]
+        )
+
+        res.json(categories)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+})
+
 // Create new course for user
 router.post('/', async (req, res) => {
     const courses = req.body.courses.map(course => new UserCourses(course))
