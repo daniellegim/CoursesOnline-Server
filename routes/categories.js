@@ -11,5 +11,15 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: err.message })
     }
 })
+router.post('/', async (req, res) => {
+    const categories = new Categories(req.body.newCategories)
+
+    try {
+        const newCategories = await categories.save()
+        res.status(200).json(newCategories)
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+})
 
 module.exports = router
