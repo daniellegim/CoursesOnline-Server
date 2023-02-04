@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: err.message })
     }
 })
+
 router.post('/', async (req, res) => {
     const levels = new Levels(req.body.newLevels)
 
