@@ -1,22 +1,22 @@
 const express = require('express')
 const router = express.Router()
-const Categories = require('../models/category')
+const Levels = require('../models/level')
 
-// Get all categories
+// Get all Levels
 router.get('/', async (req, res) => {
     try {
-        const categories = await Categories.find()
-        res.json(categories)
+        const levels = await Levels.find()
+        res.json(levels)
     } catch (err) {
         res.status(500).json({ message: err.message })
     }
 })
 router.post('/', async (req, res) => {
-    const categories = new Categories(req.body.newCategories)
+    const levels = new Levels(req.body.newLevels)
 
     try {
-        const newCategories = await categories.save()
-        res.status(200).json(newCategories)
+        const newLevels = await levels.save()
+        res.status(200).json(newLevels)
     } catch (err) {
         res.status(400).json({ message: err.message })
     }
