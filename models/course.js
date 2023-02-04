@@ -25,7 +25,20 @@ const courseSchema = new mongoose.Schema({
     author: {
         type: String,
         required: true
-    } 
+    },
+    imgURL: {
+        type: String,
+    },
+    about: {
+        type: String,
+    },
+    duration: {
+        type: String
+    },
+    level:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Level",
+    }
 }, { collection: "courses" })
 
 module.exports = mongoose.model('Course', courseSchema)

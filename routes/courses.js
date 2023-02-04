@@ -3,11 +3,12 @@ const mongoose = require('mongoose');
 const router = express.Router()
 const Categories = require('../models/category');
 const Courses = require('../models/course')
+const Levels = require('../models/level')
 const puppeteer = require('puppeteer');
 // Get all courses
 router.get('/', async (req, res) => {
     try {
-        const courses = await Courses.find().populate("category")
+        const courses = await Courses.find().populate("category").populate("level")
         res.json(courses)
     } catch (err) {
         res.status(500).json({ message: err.message })
@@ -18,6 +19,9 @@ router.get('/', async (req, res) => {
 router.get('/filtered', async (req, res) => {
     const whereClause = {}
 
+    if (req.query._id) {
+        whereClause._id = { $in: req.query._id }
+    }
     if (req.query.categories) {
         whereClause.category = { $in: req.query.categories }
     }
@@ -89,6 +93,9 @@ async function webScraper()
     let PriceCourseList = [];
     let DescriptionList = [];
     let AuthorList = [];
+    let LevelList = [];
+    let AboutList = [];
+    let DurationList = [];
     const browser = await puppeteer.launch({});
     let page = await browser.newPage();
     page.setDefaultNavigationTimeout(180000)
@@ -110,7 +117,9 @@ async function webScraper()
     // } catch (err) {
     //     console.log("Nope")
     // }
-    const categoriesExists = await Categories.find()
+    const categoriesExists = await Categories.find();
+    const levels = await Levels.find();
+    const coursesExists = await Courses.find().populate("category").populate("level");
     for(let catgoryIndex = 0; catgoryIndex < catagoriesList.length; catgoryIndex++)
     {
         let newCategories;
@@ -144,25 +153,49 @@ async function webScraper()
         DataList.forEach((newCourse)=>
         {
             LinkList.push({category:newCategories._id, link: newCourse});
-            // CourseList.push({name:newCourse,description:newCourse,price:0,category:newCategories._id,rating:4,author:"edx"});
         })
         
     }
     LinkList = deleteDuplicate(LinkList);
     console.log("Start Searching...",LinkList.length)
-    for(let linkIndex = 0 ; linkIndex < 500; linkIndex++){
+    for(let linkIndex = 0 ; linkIndex < 100; linkIndex++){
         await page.goto(LinkList[linkIndex].link,{
             waitUntil:"networkidle0"
         });
+        LevelList = (await fetchText(page,"","div.at-a-glance > div > div > ul > li","text"));
         HeaderCourseList = (await fetchText(page,"","div.header > div > div > div > h1","text"));
         PriceCourseList = (await fetchText(page,"","table.track-comparison-table > tbody > tr.tr > td.td > p.comparison-item","text"));
         DescriptionList = (await fetchText(page,"","div.header > div > div > div > div > p","text"));
         AuthorList = (await fetchText(page,"","div.at-a-glance> div > div > ul > li > a","text"));
+        AboutList = (await fetchText(page,"","div.course-main > div > div.preview-expand-component > div.preview-expand-body > div > p","text"));
+        DurationList = (await fetchText(page,"","div.course-snapshot-content > div > div > div.ml-3 > div.h4","text"));
         
+        console.log(LevelList)
+        let saveLevel = true;
+        let levelDesc = "";
+         LevelList.forEach((text) =>
+        {if(text.includes("Level") && levelDesc.length == 0){
+            let indexLevel = text.indexOf("Level")
+            levelDesc = text.split(":")[1];
+        }});
+        levelDesc = levelDesc.trim();
+        let newLevel;
+        levels.forEach((existsLevel) =>{
+            if(existsLevel.name == levelDesc)
+            {
+                saveLevel = false;
+                newLevel = existsLevel;
+            }
+        })
+        if(saveLevel && levelDesc.length > 0){
+            let level = new Levels({name:levelDesc});
+            newLevel = await level.save();
+        }
 
         let price = (PriceCourseList[0])?PriceCourseList[0].match(/[\d\.]+/)[0]:0; //Undifined Is Like Free
         CourseList.push({name:HeaderCourseList[0],price:price,description:DescriptionList[0],
-            category:LinkList[linkIndex].category, author:AuthorList[0],rating:4})
+            category:LinkList[linkIndex].category, author:AuthorList[0],rating:4,about:AboutList[0],
+        level:newLevel._id,duration:DurationList[0]});
         if(linkIndex % 100 == 0){
         console.log("Finish" + linkIndex);
         }
@@ -170,9 +203,23 @@ async function webScraper()
     }
     CourseList = deleteDuplicate(CourseList);
     for(let courseIndex = 0; courseIndex< CourseList.length; courseIndex++){
-    const course = new Courses(CourseList[courseIndex]);
+    let newCourse;
+    let course = new Courses(CourseList[courseIndex]);
+    let saveNewCourse = true;
+    coursesExists.forEach((existsCourse) =>{
+        if(existsCourse.name == CourseList[courseIndex].name)
+        {
+            course._id = existsCourse._id;
+            saveNewCourse = false;
+        }
+    })
     try {
-        const newCourse = await course.save()
+        if(saveNewCourse){
+        newCourse = await course.save()
+        }
+        else{
+            newCourse = await Courses.updateOne({"_id":course._id},course)
+        }
     }
     catch (err) {
         console.log("could not save :" + CourseList[courseIndex])
@@ -182,6 +229,7 @@ async function webScraper()
     return CourseList.length;
 
 };
+
 function deleteDuplicate(listOfitems){
     let unique = [];
     listOfitems.forEach((item) =>{if(!unique.includes(item)){unique.push(item)}});
