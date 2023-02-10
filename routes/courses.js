@@ -158,7 +158,7 @@ async function webScraper()
     }
     LinkList = deleteDuplicate(LinkList);
     console.log("Start Searching...",LinkList.length)
-    for(let linkIndex = 0 ; linkIndex < 100; linkIndex++){
+    for(let linkIndex = 300 ; linkIndex < 500; linkIndex++){
         await page.goto(LinkList[linkIndex].link,{
             waitUntil:"networkidle0"
         });
