@@ -4,6 +4,7 @@ const Categories = require('../models/category');
 const Courses = require('../models/course')
 const Levels = require('../models/level')
 const puppeteer = require('puppeteer');
+const { json } = require('express');
 
 const recordsNum = 50
 
@@ -43,6 +44,49 @@ router.post('/', async (req, res) => {
 
     try {
         const newCourse = await course.save()
+        res.status(200).json(newCourse)
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+})
+router.get('/delete', async (req, res) => {
+    const whereClause = {}
+    if (req.query.id) {
+        whereClause._id = { $in: req.query.id }
+    }
+
+    try {
+        const newCourse = await Courses.findByIdAndRemove(req.query.id);
+        res.status(200).json(newCourse)
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+})
+router.get('/update', async (req, res) => {
+    const whereClause = {}
+    if (req.query._id) {
+        whereClause = { _id: req.query._id }
+    }
+    let course = {};
+    course._id = req.query.id;
+    if(req.query.name){
+        course.name = req.query.name;
+    }
+    if(req.query.description){
+        course.description = req.query.description
+    }
+    if(req.query.price){
+        course.price = req.query.price
+    }
+    if(req.query.rating){
+        course.rating = req.query.rating
+    }
+    if(req.query.author){
+        course.author = req.query.author;
+    }
+    try {
+        
+        const newCourse = await Courses.updateOne(whereClause,course);
         res.status(200).json(newCourse)
     } catch (err) {
         res.status(400).json({ message: err.message })
@@ -147,10 +191,10 @@ async function webScraper() {
 
     }
     LinkList = deleteDuplicate(LinkList);
-    console.log("Start Searching...", LinkList.length)
-    for (let linkIndex = 0; linkIndex < 100; linkIndex++) {
-        await page.goto(LinkList[linkIndex].link, {
-            waitUntil: "networkidle0"
+    console.log("Start Searching...",LinkList.length)
+    for(let linkIndex = 300 ; linkIndex < 500; linkIndex++){
+        await page.goto(LinkList[linkIndex].link,{
+            waitUntil:"networkidle0"
         });
         LevelList = (await fetchText(page, "", "div.at-a-glance > div > div > ul > li", "text"));
         HeaderCourseList = (await fetchText(page, "", "div.header > div > div > div > h1", "text"));
