@@ -15,6 +15,9 @@ router.get('/', async (req, res) => {
         whereClause._id = { $in: req.query._id }
     }
 
+    if (req.query.name)
+        whereClause.name = { $regex: '.*' + req.query.name + '.*', $options: 'i' }
+
     if (req.query.categories) {
         whereClause.category = { $in: req.query.categories }
     }
