@@ -16,6 +16,9 @@ router.get('/', async (req, res) => {
         whereClause._id = { $in: req.query._id }
     }
 
+    if (req.query.name)
+        whereClause.name = { $regex: '.*' + req.query.name + '.*', $options: 'i' }
+
     if (req.query.categories) {
         whereClause.category = { $in: req.query.categories }
     }
@@ -49,6 +52,7 @@ router.post('/', async (req, res) => {
         res.status(400).json({ message: err.message })
     }
 })
+
 router.get('/delete', async (req, res) => {
     const whereClause = {}
     if (req.query.id) {
@@ -62,31 +66,35 @@ router.get('/delete', async (req, res) => {
         res.status(400).json({ message: err.message })
     }
 })
+
 router.get('/update', async (req, res) => {
     const whereClause = {}
     if (req.query._id) {
         whereClause = { _id: req.query._id }
     }
+
     let course = {};
+
     course._id = req.query.id;
-    if(req.query.name){
+
+    if (req.query.name) {
         course.name = req.query.name;
     }
-    if(req.query.description){
+    if (req.query.description) {
         course.description = req.query.description
     }
-    if(req.query.price){
+    if (req.query.price) {
         course.price = req.query.price
     }
-    if(req.query.rating){
+    if (req.query.rating) {
         course.rating = req.query.rating
     }
-    if(req.query.author){
+    if (req.query.author) {
         course.author = req.query.author;
     }
+    
     try {
-        
-        const newCourse = await Courses.updateOne(whereClause,course);
+        const newCourse = await Courses.updateOne(whereClause, course);
         res.status(200).json(newCourse)
     } catch (err) {
         res.status(400).json({ message: err.message })
@@ -191,10 +199,10 @@ async function webScraper() {
 
     }
     LinkList = deleteDuplicate(LinkList);
-    console.log("Start Searching...",LinkList.length)
-    for(let linkIndex = 300 ; linkIndex < 500; linkIndex++){
-        await page.goto(LinkList[linkIndex].link,{
-            waitUntil:"networkidle0"
+    console.log("Start Searching...", LinkList.length)
+    for (let linkIndex = 300; linkIndex < 500; linkIndex++) {
+        await page.goto(LinkList[linkIndex].link, {
+            waitUntil: "networkidle0"
         });
         LevelList = (await fetchText(page, "", "div.at-a-glance > div > div > ul > li", "text"));
         HeaderCourseList = (await fetchText(page, "", "div.header > div > div > div > h1", "text"));

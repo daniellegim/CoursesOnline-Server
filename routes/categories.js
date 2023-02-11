@@ -23,4 +23,13 @@ router.post('/', async (req, res) => {
     }
 })
 
+router.patch('/', async (req, res) => {
+    try {
+        const category = await Categories.findOneAndUpdate({ _id: req.body.category._id }, { name: req.body.category.name })
+        res.status(200).json(category)
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+})
+
 module.exports = router
