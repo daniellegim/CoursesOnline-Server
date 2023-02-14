@@ -57,21 +57,20 @@ async function generateResponseAI(qsm) {
 }
 numberOfConnected = 0;
 const connectWebSocket = (io) => {
-    io.on('connect', function () {
-        numberOfConnected++
-    });
-    io.on('disconnect', function () {
-        numberOfConnected--
-    });
+
     io.on('connection', function (socket) {
-        let connectedUsersCount = io.of("/").sockets.size;
-        io.emit('connectedUsersCount', connectedUsersCount);
+        numberOfConnected++;
+        io.emit('connectedUsersCount', numberOfConnected);
+        // io.emit('connectedUsersCount', connectedUsersCount);
         socket.on('join', (userId) => {
             socket.join(userId);
-            console.log("New user joined!")
-            // numberOfConnected++;
-            let d = (io.sockets.connected)? (Object.keys(io.sockets.connected)):[]
-            console.log(d.length)
+
+            
+        });
+
+        socket.on('disconnect', function () {
+            numberOfConnected--
+            io.emit('connectedUsersCount', numberOfConnected);
             
         });
         socket.on('new-msg', async function (data) {
