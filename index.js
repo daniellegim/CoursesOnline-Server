@@ -28,9 +28,6 @@ const categoriesRouter = require('./routes/categories')
 const levelRouter = require('./routes/levels')
 const adminRouter = require('./routes/admin')
 
-
-
-
 const cors = require('cors');
 app.use(cors());
 
